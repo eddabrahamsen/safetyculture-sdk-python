@@ -1,3 +1,8 @@
+# Beta Changes to the iAuditor CSV Exporter
+
+## Features added so far:
+* SQL Update Support
+
 # SafetyCulture Python SDK and iAuditor Tools
 
 Contains:
