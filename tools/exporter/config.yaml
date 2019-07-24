@@ -1,11 +1,18 @@
-API:
-    token: YOUR_IAUDITOR_API_TOKEN
+  API:
+    token: 
 export_options:
     export_path:
     timezone:
-    filename: 
+    filename:
     csv_options:
         export_inactive_items: false
     export_profiles:
     sync_delay_in_seconds:
     media_sync_offset_in_seconds:
+    sql_table: EddTesting
+    database_type: postgres
+    database_user: postgres
+    database_pwd: 
+    database_server: localhost
+    database_port: 5432
+    database_name: iauditor
