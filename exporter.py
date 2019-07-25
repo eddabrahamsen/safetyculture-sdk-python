@@ -91,6 +91,13 @@ DEFAULT_CONFIG_FILE_YAML = [
     '\n    export_profiles:',
     '\n    sync_delay_in_seconds:',
     '\n    media_sync_offset_in_seconds:',
+    '\n    sql_table:',
+    '\n    database_type:',
+    '\n    database_user:',
+    '\n    database_pwd:',
+    '\n    database_server:',
+    '\n    database_port:',
+    '\n    database_name:'
 ]
 
 SQL_HEADER_ROW = [
