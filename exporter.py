@@ -97,7 +97,7 @@ DEFAULT_CONFIG_FILE_YAML = [
     '\n    database_pwd:',
     '\n    database_server:',
     '\n    database_port:',
-    '\n    database_name:'
+    '\n    database_name:''
 ]
 
 SQL_HEADER_ROW = [
