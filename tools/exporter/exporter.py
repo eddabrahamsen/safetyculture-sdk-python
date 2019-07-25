@@ -883,7 +883,7 @@ def process_audit(logger, settings, sc_client, audit):
         elif export_format == 'csv':
             export_audit_csv(settings, audit_json)
         elif export_format == 'sql':
-            export_audit_sql(settings, audit_json)
+            export_audit_sql(logger, settings, audit_json)
         elif export_format == 'media':
             export_audit_media(logger, sc_client, settings, audit_json, audit_id, export_filename)
         elif export_format == 'web-report-link':
@@ -932,13 +932,14 @@ def export_audit_csv(settings, audit_json):
     csv_exporter.append_converted_audit_to_bulk_export_file(
         os.path.join(settings[EXPORT_PATH], csv_export_filename + '.csv'))
 
-def export_audit_sql(settings, audit_json):
+def export_audit_sql(logger, settings, audit_json):
     """
     Save audit CSV to disk.
     :param settings:    Settings from command line and configuration file
     :param audit_json:  Audit JSON
     """
     engine = create_engine('{}://{}:{}@{}:{}/{}'.format(settings[DB_TYPE],settings[DB_USER],settings[DB_PWD],settings[DB_SERVER],settings[DB_PORT],settings[DB_NAME]))
+    logger.debug('Making connection to '+str(engine))
     csv_exporter = csvExporter.CsvExporter(audit_json, settings[EXPORT_INACTIVE_ITEMS_TO_CSV])
     df = csv_exporter.audit_table
     df = pd.DataFrame.from_records(df, columns=SQL_HEADER_ROW)
@@ -946,10 +947,12 @@ def export_audit_sql(settings, audit_json):
     df.fillna(value={'Latitude' : 0,'Longitude' : 0},inplace=True)
     # df.astype({'ItemScore': 'float64'})
     meta = MetaData()
+    table = settings[SQL_TABLE]
+    logger.info('Checking for table called '+table)
     if not engine.dialect.has_table(engine, settings[SQL_TABLE]):
-        print('Table Not Found')
-        settings[SQL_TABLE] = Table(
-            settings[SQL_TABLE], meta,
+        logger.info(table+ ' not Found. Creating table')
+        table = Table(
+            table, meta,
             Column('index', Integer),
             Column('ItemType', String),
             Column('Label', String),
@@ -964,7 +967,7 @@ def export_audit_sql(settings, audit_json):
             Column('Mandatory', Boolean),
             Column('FailedResponse', Boolean),
             Column('Inactive', Boolean),
-            Column('ItemID', String, primary_key=True, nullable=False),
+            Column('ItemID', String, primary_key=True),
             Column('ResponseID', String),
             Column('ParentID', String),
             Column('AuditOwner', String),
@@ -977,7 +980,7 @@ def export_audit_sql(settings, audit_json):
             Column('DateStarted', DateTime),
             Column('DateCompleted', DateTime),
             Column('DateModified', DateTime),
-            Column('AuditID', String, primary_key=True, nullable=False),
+            Column('AuditID', String, primary_key=True),
             Column('TemplateID', String),
             Column('TemplateName', String),
             Column('TemplateAuthor', String),
@@ -993,14 +996,14 @@ def export_audit_sql(settings, audit_json):
             Column('AuditRegion', String)
         )
         meta.create_all(engine)
-        df.to_sql(table, con=engine, if_exists='append', method = 'multi')
-        print(df[['ItemScore','ItemMaxScore','ItemScorePercentage']])
+        logger.info('Table created successfully. Writing first row')
+        df.to_sql(settings[SQL_TABLE], con=engine, if_exists='append', method = 'multi')
     else:
-        print('Table Found')
+        logger.info('Table Exists, writing row')
         try:
-            df.to_sql(table, con=engine, if_exists='append', method = 'multi')
+            df.to_sql(settings[SQL_TABLE], con=engine, if_exists='append', method = 'multi')
         except:
-            print('Duplicate Entry - Skipping')
+            logger.error('Error Occured Writing to SQL')
 
 
 def export_audit_media(logger, sc_client, settings, audit_json, audit_id, export_filename):
